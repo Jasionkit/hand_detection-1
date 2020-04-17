@@ -107,7 +107,6 @@ Once training is completed, the trained inference graph (`frozen_inference_graph
 
 ## Using the Detector to Detect/Track hands
 
-
 If you have not done this yet, please following the guide on installing [Tensorflow and the Tensorflow object detection api](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md). This will walk you through setting up the tensorflow framework, cloning the tensorflow github repo and a guide on  
 
 - Load the `frozen_inference_graph.pb` trained on the hands dataset as well as the corresponding label map. In this repo, this is done in the `utils/detector_utils.py` script by the `load_inference_graph` method.
@@ -147,22 +146,6 @@ This repo contains two scripts that tie all these steps together.
 Use the [export_inference_graph.py](https://github.com/tensorflow/models/blob/master/research/object_detection/export_inference_graph.py) script provided in the tensorflow object detection api repo.
 More guidance on this [here](https://pythonprogramming.net/testing-custom-object-detector-tensorflow-object-detection-api-tutorial/?completed=/training-custom-objects-tensorflow-object-detection-api-tutorial/).
 
-## Thoughts on Optimization.
-A few things that led to noticeable performance increases.
-
-- Threading: Turns out that reading images from a webcam is a heavy I/O event and if run on the main application thread can slow down the program. I implemented some good ideas from [Adrian Rosebuck](https://www.pyimagesearch.com/2017/02/06/faster-video-file-fps-with-cv2-videocapture-and-opencv/) on parrallelizing image capture across multiple worker threads. This mostly led to an FPS increase of about 5 points.
-- For those new to Opencv, images from the `cv2.read()` method return images in [BGR format](https://www.learnopencv.com/why-does-opencv-use-bgr-color-format/). Ensure you convert to RGB before detection (accuracy will be much reduced if you dont).
-```python
-cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-```
-- Keeping your input image small will increase fps without any significant accuracy drop.(I used about 320 x 240 compared to the 1280 x 720 which my webcam provides).
-
-- Model Quantization. Moving from the current 32 bit to 8 bit can achieve up to 4x reduction in memory required to load and store models. One way to further speed up this model is to explore the use of [8-bit fixed point quantization](https://heartbeat.fritz.ai/8-bit-quantization-and-tensorflow-lite-speeding-up-mobile-inference-with-low-precision-a882dfcafbbd).
-
-Performance can also be increased by a clever combination of tracking algorithms with the already decent detection and this is something I am still experimenting with. Have ideas for optimizing better, please share!
-
-<img src="images/general.jpg" width="100%">
-Note: The detector does reflect some limitations associated with the training set. This includes non-egocentric viewpoints, very noisy backgrounds (e.g in a sea of hands) and sometimes skin tone.  There is opportunity to improve these with additional data.
 
 
 ## Integrating Multiple DNNs.
